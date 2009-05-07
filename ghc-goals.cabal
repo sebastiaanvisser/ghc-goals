@@ -1,0 +1,37 @@
+name:                ghc-goals
+version:             0.0.2
+synopsis:            Exposes the inferred types of undefineds
+description:
+  During development of a Haskell program, we sometimes use `undefined' when we're stuck and just
+  want something to type check and compile.
+
+  While this is a great way of tricking the compiler into allowing your program it doesn't help you 
+  in figuring out what the type of your `undefined' is supposed to be.
+
+  Both the idea and the name for this feature are based on goals in Agda.
+license:             BSD3
+license-file:        LICENSE
+author:              Rui Barbosa,
+                     Erik Hesselink,
+                     Tom Lokhorst,
+                     Sebastiaan Visser
+maintainer:          Tom Lokhorst <tom@lokhorst.eu>
+stability:           Experimental
+category:            Development, GHC
+build-type:          Simple
+cabal-version:       >= 1.2
+
+library
+  hs-source-dirs:    src
+  exposed-modules:   Development.GhcGoals
+  other-modules:     Development.GhcGoals.Collector
+  build-depends:     base >= 4,
+                     ghc,
+                     ghc-paths,
+                     ghc-syb == 0.1.2,
+                     syb
+
+executable ghc-goals
+  main-is:           GhcGoals.hs
+  hs-source-dirs:    src
+
