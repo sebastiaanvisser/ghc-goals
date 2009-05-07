@@ -9,6 +9,19 @@ description:         During development of a Haskell program, we sometimes use
                      allowing your program it doesn't help you in figuring out
                      what the type of your `undefined' is supposed to be.
                      .
+                     This package includes a library and a standalone
+                     executable. The executable can be used like so:
+                     .
+                     > $ ghc-goals test/Simple
+                     > undefined :: Integer -> Char  -- Used in examples/Simple.hs:4:21-29
+                     > undefined :: Char  -- Used in examples/Simple.hs:7:12-20
+                     .
+                     The library can be used from inside GHCi, like so:
+                     .
+                     > ghci> :m + Development.GhcGoals
+                     > ghci> goals "examples/WithContext"
+                     > undefined :: (Show a) => a  -> [Char]  -- Used in examples/WithContext.hs:4:6-14
+                     .
                      Both the idea and the name for this feature are based on
                      goals in Agda.
 license:             BSD3
@@ -22,11 +35,12 @@ stability:           Experimental
 category:            Development
 build-type:          Simple
 cabal-version:       >= 1.2
+extra-source-files:  examples/*.hs
 
 library
   hs-source-dirs:    src
   exposed-modules:   Development.GhcGoals
-  other-modules:     Development.GhcGoals.Collector
+                     Development.GhcGoals.Collector
   build-depends:     base >= 4,
                      ghc,
                      ghc-paths >= 0.1 && < 0.2,
