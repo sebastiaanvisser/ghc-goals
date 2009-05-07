@@ -1,0 +1,11 @@
+
+SEEM TO WORKSO FAR
+> simple
+> partially specified goal types (eg: goal1 :: a -> b)
+> classes
+
+NOT TESTED YET
+> higher rank
+> GADTs
+> type families
+
