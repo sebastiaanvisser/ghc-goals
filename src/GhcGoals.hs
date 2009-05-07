@@ -18,11 +18,11 @@ options = [ Option ['g'] ["goal-names"] (ReqArg (\s c -> c { goalnames = goalnam
 
 main :: IO ()
 main = do
-    let header = "Usage: ghc-goals FILENAME [OPTIONS...], with the following options:" 
+    let header = "Usage: ghc-goals FILENAME [OPTIONS...], with the following options:"
     args <- getArgs
     (opts, files) <- processArgs defaultConfig options header args
     let opts' = opts { goalnames = if null $ goalnames opts then ["undefined"] else goalnames opts }
-    if null files 
+    if null files
       then putStrLn $ usageInfo header options
       else pprGoals =<< goalsWith (goalnames opts') (head files)
 

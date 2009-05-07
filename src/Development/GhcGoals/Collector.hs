@@ -42,7 +42,7 @@ cleanupTypeSpec (preds, ty) = (map tidy preds, tidy ty)
 
 collectGoalInfo :: [String] -> SrcSpan -> [DictId] -> GenericQ [GoalInfo]
 collectGoalInfo goalNames loc dicts x
-        | excluded x = []         
+        | excluded x = []
         | otherwise  = (topQuery `catQ` recQuery)
                                  `extQ` locChangeCase
                                  `extQ` predChangeCase $ x
@@ -63,7 +63,7 @@ collectGoalInfo goalNames loc dicts x
 collectGoalInfoVar :: [String] -> SrcSpan -> [DictId] -> HsExpr Id -> [GoalInfo]
 collectGoalInfoVar goalNames loc dicts ((HsWrap wrap (HsVar var)))
   | varNameString var `elem` goalNames = [(varNameString var, loc, typeSpec)]
-  where typeSpec = (map varType dicts, reduceUnwrap wrap (varType var)) 
+  where typeSpec = (map varType dicts, reduceUnwrap wrap (varType var))
 collectGoalInfoVar _ _ _ _             = []
 
 varNameString :: Var -> String

@@ -25,8 +25,8 @@ goals = goalsWith ["undefined"]
 -- | Analyze a file, returning type information for all variables with
 -- the specified names.
 goalsWith :: [String] -> FilePath -> IO [GoalInfo]
-goalsWith goals file = 
-    defaultErrorHandler defaultDynFlags $ 
+goalsWith goals file =
+    defaultErrorHandler defaultDynFlags $
       runGhc (Just libdir) $ do
         dflags   <- getSessionDynFlags
         setSessionDynFlags dflags
@@ -41,7 +41,7 @@ goalsWith goals file =
 -- | Pretty print information on goals in a style similar to GHCi.
 pprGoals :: [GoalInfo] -> IO ()
 pprGoals goals = do
-    defaultErrorHandler defaultDynFlags $ 
+    defaultErrorHandler defaultDynFlags $
       runGhc (Just libdir) $ do
         dflags     <- getSessionDynFlags
         let pefas = dopt Opt_PrintExplicitForalls dflags
