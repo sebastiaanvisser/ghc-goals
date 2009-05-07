@@ -1,4 +1,4 @@
-module OfflineTestGoalCollector where
+module GhcGoals where
 
 import GHC
 import GHC.Paths
@@ -10,7 +10,8 @@ import PprTyThing
 
 import GoalCollector
 
-
+import GHC.SYB.Instances
+import Data.Generics
 
 -- | Test the run goals without installing the patched ghci. 
 --  Do rungoals "Test.hs" ["undefined","goalname2", ...]
