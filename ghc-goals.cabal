@@ -11,7 +11,7 @@ description:         During development of a Haskell program, we sometimes use
                      .
                      This package allows you to request the type of each
                      `undefined' according to the GHC type inferencer.
-                     Included are a library and a standalone executable.
+                     Included are a standalone executable and a library.
                      .
                      The executable can be used like so:
                      .
