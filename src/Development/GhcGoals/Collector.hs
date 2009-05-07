@@ -15,9 +15,11 @@ import Data.Data
 import VarEnv
 import Data.Generics
 import GHC.SYB.Instances
+import GHC.SYB.Utils
 import Type
 import TypeRep
 import GHC (typecheckedSource, TypecheckedModule)
+import Control.Arrow((&&&))
 
 -- | Type information on a term: its type, and predicated on type
 -- variables.
@@ -45,7 +47,8 @@ collectGoalInfo goalNames loc dicts x
         | excluded x = []
         | otherwise  = (topQuery `catQ` recQuery)
                                  `extQ` locChangeCase
-                                 `extQ` predChangeCase $ x
+                                 `extQ` predChangeCaseFunctionLevel
+                                 `extQ` predChangeCaseEquationLevel $ x
      where catQ r s x =  r x ++  s x
            topQuery = mkQ [] (collectGoalInfoVar goalNames loc dicts)
            recQuery :: GenericQ [GoalInfo]
@@ -53,12 +56,20 @@ collectGoalInfo goalNames loc dicts x
            locChangeCase :: LHsExpr Id -> [GoalInfo]
            locChangeCase (L newloc child) = collectGoalInfo goalNames newloc dicts child
            excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
-           predChangeCase :: HsBind Id -> [GoalInfo]
-           predChangeCase (AbsBinds _ newdicts child1 child2) =
+           predChangeCaseFunctionLevel :: HsBind Id -> [GoalInfo]
+           predChangeCaseFunctionLevel (AbsBinds _ newdicts child1 child2) =
              let f :: GenericQ [GoalInfo]
                  f = collectGoalInfo goalNames loc newdicts
              in f child1 ++ f child2
-           predChangeCase x = recQuery x
+           predChangeCaseFunctionLevel x = recQuery x
+           predChangeCaseEquationLevel :: Match Id -> [GoalInfo]
+           predChangeCaseEquationLevel (Match pat child1 child2) = 
+                 let newdicts = concatMap collectPredPat pat
+                     f :: GenericQ [GoalInfo]
+                     f        = collectGoalInfo goalNames loc newdicts
+                 in f child1 ++ f child2
+           collectPredPat (L _ (ConPatOut _ _ newdicts _ _ _)) = newdicts
+           collectPredPat x = []
 
 collectGoalInfoVar :: [String] -> SrcSpan -> [DictId] -> HsExpr Id -> [GoalInfo]
 collectGoalInfoVar goalNames loc dicts ((HsWrap wrap (HsVar var)))
@@ -114,3 +125,33 @@ subst_type v t' t0 = go t0
     go_pt (IParam i t) = IParam i (go t)
     go_pt (EqPred t1 t2) = EqPred (go t1) (go t2)
 
+{--
+---DEBUG STUFF
+
+
+gshowsafe :: GenericQ String
+gshowsafe = ( \t ->
+                "("
+             ++ showConstr (toConstr t)
+             ++ concat (gmapQ ((++) " " . gshowsafe) t)
+             ++ ")"
+            ) `extQ` (const "UNDEFINED" :: NameSet -> String)
+              `extQ` (varNameString) `extQ` (lsts gshowsafe :: [LMatch Id] -> String)
+   where lsts :: (a -> String) -> [a] -> String
+         lsts s x = "["++lsts' s x++"]"
+         lsts' :: (a -> String) -> [a] -> String
+         lsts' s [] = ""
+         lsts' s [x] = s x
+         lsts' s (x:xs) = s x ++ " , " ++ lsts' s xs    
+
+testquery :: GenericQ [String]
+testquery = map gshow . map (varNameString&&&varType) . testquery'
+
+testquery' :: GenericQ [Var]
+testquery' = everythingBut excluded (++) [] ([] `mkQ` testqueryVar)
+     where excluded :: GenericQ Bool
+           excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
+
+testqueryVar ::  Var -> [Var]
+testqueryVar = return
+--}
