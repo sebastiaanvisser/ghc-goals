@@ -3,9 +3,9 @@
 -- etc., producing type information on all the goals.
 module Development.GhcGoals (
       goals
-    , goalsWith
+    , getGoals
+    , getGoalsWith
     , pprGoals
-    , pprTypeSpecForUser
     ) where
 
 import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls))
@@ -18,14 +18,18 @@ import PprTyThing (pprTypeForUser)
 
 import Development.GhcGoals.Collector
 
+-- | Analyze a file, print type information for all 'undefined's
+goals :: FilePath -> IO ()
+goals p = getGoals p >>= pprGoals
+
 -- | Analyze a file, returning type information for all 'undefined's.
-goals :: FilePath -> IO [GoalInfo]
-goals = goalsWith ["undefined"]
+getGoals :: FilePath -> IO [GoalInfo]
+getGoals = getGoalsWith ["undefined"]
 
 -- | Analyze a file, returning type information for all variables with
 -- the specified names.
-goalsWith :: [String] -> FilePath -> IO [GoalInfo]
-goalsWith goals file =
+getGoalsWith :: [String] -> FilePath -> IO [GoalInfo]
+getGoalsWith goals file =
     defaultErrorHandler defaultDynFlags $
       runGhc (Just libdir) $ do
         dflags   <- getSessionDynFlags

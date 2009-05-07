@@ -24,7 +24,7 @@ main = do
     let opts' = opts { goalnames = if null $ goalnames opts then ["undefined"] else goalnames opts }
     if null files
       then putStrLn $ usageInfo header options
-      else pprGoals =<< goalsWith (goalnames opts') (head files)
+      else pprGoals =<< getGoalsWith (goalnames opts') (head files)
 
 processArgs :: a -> [OptDescr (a -> a)] -> String -> [String] -> IO (a, [String])
 processArgs defaultConfig options header args =
