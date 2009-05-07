@@ -3,9 +3,13 @@ SEEM TO WORKSO FAR
 > simple
 > partially specified goal types (eg: goal1 :: a -> b)
 > classes
+> GADTs
+> mixing equality and class constraints
 
 NOT TESTED YET
 > higher rank
-> GADTs
 > type families
+> mixing function level and equation level constraints
+ 
+
 
