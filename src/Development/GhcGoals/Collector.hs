@@ -1,4 +1,4 @@
-module GoalCollector (
+module Development.GhcGoals.Collector (
     TypeSpec
   , GoalInfo
   , goalsFor
