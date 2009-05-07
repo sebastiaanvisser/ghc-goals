@@ -4,7 +4,7 @@ module Development.GhcGoals (
     , pprTypeSpecForUser
     ) where
 
-import GHC (defaultErrorHandler, runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls))
+import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls))
 import GHC.Paths (libdir)
 import DynFlags (defaultDynFlags)
 import MonadUtils (liftIO)
@@ -22,7 +22,7 @@ runGoals file goals =
         setSessionDynFlags dflags
         target     <- guessTarget file Nothing
         setTargets [target]
-        --load LoadAllTargets
+        load LoadAllTargets
         (md:mds) <- depanal [] True
         pm         <- parseModule md
         tcm        <- typecheckModule pm
