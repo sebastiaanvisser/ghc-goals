@@ -1,3 +1,4 @@
+-- | This module contains the pure interface to goal collecting.
 module Development.GhcGoals.Collector (
     TypeSpec
   , GoalInfo
@@ -18,13 +19,18 @@ import Type
 import TypeRep
 import GHC (typecheckedSource, TypecheckedModule)
 
+-- | Type information on a term: its type, and predicated on type
+-- variables.
 type TypeSpec =
-  ( [Type] -- ^ Predicate information.
-  , Type   -- ^ The actual goal type.
+  ( [Type] -- Predicate information.
+  , Type   -- The actual goal type.
   )
 
+-- | Information on a goal: its name, position and type information.
 type GoalInfo = (String, SrcSpan, TypeSpec)
 
+-- | Analyze a type checked module, returning type information for all
+-- variables with the specified names.
 goalsFor :: TypecheckedModule -> [String] -> [GoalInfo]
 goalsFor mod names =
      map (\(n, s, ts) -> (n, s, cleanupTypeSpec ts))

@@ -1,5 +1,9 @@
+-- | This module contains a high level interface to the goals
+-- functionality. Given a file, it takes care of parsing, typechecking
+-- etc., producing type information on all the goals.
 module Development.GhcGoals (
-      runGoals
+      goals
+    , goalsWith
     , pprGoals
     , pprTypeSpecForUser
     ) where
@@ -14,20 +18,27 @@ import PprTyThing (pprTypeForUser)
 
 import Development.GhcGoals.Collector
 
-runGoals :: FilePath -> [String] -> IO [GoalInfo]
-runGoals file goals = 
+-- | Analyze a file, returning type information for all 'undefined's.
+goals :: FilePath -> IO [GoalInfo]
+goals = goalsWith ["undefined"]
+
+-- | Analyze a file, returning type information for all variables with
+-- the specified names.
+goalsWith :: [String] -> FilePath -> IO [GoalInfo]
+goalsWith goals file = 
     defaultErrorHandler defaultDynFlags $ 
       runGhc (Just libdir) $ do
-        dflags     <- getSessionDynFlags
+        dflags   <- getSessionDynFlags
         setSessionDynFlags dflags
-        target     <- guessTarget file Nothing
+        target   <- guessTarget file Nothing
         setTargets [target]
         load LoadAllTargets
         (md:mds) <- depanal [] True
-        pm         <- parseModule md
-        tcm        <- typecheckModule pm
+        pm       <- parseModule md
+        tcm      <- typecheckModule pm
         return $ goalsFor tcm goals
 
+-- | Pretty print information on goals in a style similar to GHCi.
 pprGoals :: [GoalInfo] -> IO ()
 pprGoals goals = do
     defaultErrorHandler defaultDynFlags $ 
