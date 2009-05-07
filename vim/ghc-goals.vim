@@ -1,4 +1,4 @@
-function Goal ()
+function Goal (replace)
 
   " Save this file and call the ghc-goals tool in the background with our
   " module and word-under-cursor as arguments.
@@ -15,19 +15,23 @@ function Goal ()
   let output = join(list, " ")
 
   " Filter out the comment from the signature.
-  let output = substitute(output, "--.*", "", "g")
+  let output = substitute(output, "\\s*--.*", "", "g")
 
   " Print out the type.
   echomsg output
 
-endfunction
+  if a:replace
+    exe "normal ciw(" . output . ")\<esc>"
+  endif
 
+endfunction
 
 
 " Install goal collector for Haskell and literate Haskell files.
 
 function Install ()
-  map <buffer> <F4> :call Goal()<CR> 
+  map <buffer> <F4> :call Goal(0)<CR> 
+  map <buffer> <F5> :call Goal(1)<CR> 
 endfunction
 
 autocmd BufRead,BufNewFile *.{hs,lhs} call Install()
