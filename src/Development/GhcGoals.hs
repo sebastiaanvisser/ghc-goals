@@ -13,12 +13,43 @@ import Control.Monad (liftM)
 import Data.List (sortBy)
 import Data.Ord (comparing)
 
-import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls), SuccessFlag(..), handleSourceError, printExceptionAndWarnings, ghcLink, GhcLink(..), hscTarget, HscTarget(..))
+import GHC ( defaultErrorHandler
+           , depanal
+           , dopt
+           , DynFlag(Opt_PrintExplicitForalls)
+           , getSessionDynFlags
+           , ghcLink
+           , GhcLink(..)
+           , guessTarget
+           , handleSourceError
+           , hscTarget
+           , HscTarget(..)
+           , load
+           , LoadHowMuch(..)
+           , parseModule
+           , printExceptionAndWarnings
+           , runGhc
+           , setSessionDynFlags
+           , setTargets
+           , SuccessFlag(..)
+           , typecheckModule
+           )
 import GHC.Paths (libdir)
 import DynFlags (defaultDynFlags)
 import MonadUtils (liftIO)
 
-import Outputable (showSDocForUser, neverQualify, hsep, text, nest, dcolon, (<+>), ppr, empty, parens, pprWithCommas)
+import Outputable ( (<+>)
+                  , dcolon
+                  , empty
+                  , hsep
+                  , nest
+                  , neverQualify
+                  , parens
+                  , ppr
+                  , pprWithCommas
+                  , showSDocForUser
+                  , text
+                  )
 import PprTyThing (pprTypeForUser)
 
 import Development.GhcGoals.Collector
