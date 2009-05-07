@@ -7,7 +7,8 @@ description:         During development of a Haskell program, we sometimes use
                      .
                      While this is a great way of tricking the compiler into
                      allowing your program it doesn't help you in figuring out
-                     what the type of your `undefined' is supposed to be.
+                     what the type of your `undefined' is supposed to be. This
+					 program provides functionality to do that.
                      .
                      This package includes a library and a standalone
                      executable. The executable can be used like so:
