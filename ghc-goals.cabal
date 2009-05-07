@@ -1,27 +1,29 @@
 name:                ghc-goals
-version:             0.0.3
+version:             0.0.4
 synopsis:            Exposing the inferred types of undefineds
 description:         During development of a Haskell program, we sometimes use
                      `undefined' when we're stuck and just want something to
                      type check and compile.
                      .
                      While this is a great way of tricking the compiler into
-                     allowing your program it doesn't help you in figuring out
-                     what the type of your `undefined' is supposed to be. This
-					 program provides functionality to do that.
+                     allowing your program, it doesn't help you in figuring out
+                     what the type of your `undefined' is supposed to be.
                      .
-                     This package includes a library and a standalone
-                     executable. The executable can be used like so:
+                     This package allows you to request the type of each
+                     `undefined' according to the GHC type inferencer.
+                     Included are a library and a standalone executable.
+                     .
+                     The executable can be used like so:
                      .
                      > $ ghc-goals test/Simple
                      > undefined :: Integer -> Char  -- Used in examples/Simple.hs:4:21-29
                      > undefined :: Char  -- Used in examples/Simple.hs:7:12-20
                      .
-                     The library can be used from inside GHCi, like so:
+                     The library can be used from inside GHCi:
                      .
                      > ghci> :m + Development.GhcGoals
                      > ghci> goals "examples/WithContext"
-                     > undefined :: (Show a) => a  -> [Char]  -- Used in examples/WithContext.hs:4:6-14
+                     > undefined :: (Show a) => a -> [Char]  -- Used in examples/WithContext.hs:4:6-14
                      .
                      Both the idea and the name for this feature are based on
                      goals in Agda.
