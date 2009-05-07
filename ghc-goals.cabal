@@ -1,14 +1,16 @@
 name:                ghc-goals
-version:             0.0.2
-synopsis:            Exposes the inferred types of undefineds
-description:
-  During development of a Haskell program, we sometimes use `undefined' when we're stuck and just
-  want something to type check and compile.
-
-  While this is a great way of tricking the compiler into allowing your program it doesn't help you 
-  in figuring out what the type of your `undefined' is supposed to be.
-
-  Both the idea and the name for this feature are based on goals in Agda.
+version:             0.0.3
+synopsis:            Exposing the inferred types of undefineds
+description:         During development of a Haskell program, we sometimes use
+                     `undefined' when we're stuck and just want something to
+                     type check and compile.
+                     .
+                     While this is a great way of tricking the compiler into
+                     allowing your program it doesn't help you in figuring out
+                     what the type of your `undefined' is supposed to be.
+                     .
+                     Both the idea and the name for this feature are based on
+                     goals in Agda.
 license:             BSD3
 license-file:        LICENSE
 author:              Rui Barbosa,
@@ -17,7 +19,7 @@ author:              Rui Barbosa,
                      Sebastiaan Visser
 maintainer:          Tom Lokhorst <tom@lokhorst.eu>
 stability:           Experimental
-category:            Development, GHC
+category:            Development
 build-type:          Simple
 cabal-version:       >= 1.2
 
@@ -27,9 +29,12 @@ library
   other-modules:     Development.GhcGoals.Collector
   build-depends:     base >= 4,
                      ghc,
-                     ghc-paths,
-                     ghc-syb == 0.1.2,
-                     syb
+                     ghc-paths >= 0.1 && < 0.2,
+                     syb >= 0.1 && < 0.2
+  if impl(ghc < 6.10.2)
+    build-depends:   ghc-syb == 0.1.1.*
+  else
+    build-depends:   ghc-syb >= 0.1.1 && < 0.1.2
 
 executable ghc-goals
   main-is:           GhcGoals.hs
