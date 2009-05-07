@@ -12,12 +12,8 @@ import Name hiding (varName)
 import HsTypes
 import Data.Data
 import VarEnv
-#ifdef GHCi
-import SybUtils
-#else
 import Data.Generics
 import GHC.SYB.Instances
-#endif
 import Type
 import TypeRep
 import GHC (typecheckedSource, TypecheckedModule)
