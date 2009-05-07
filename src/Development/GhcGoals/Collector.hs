@@ -47,8 +47,8 @@ collectGoalInfo goalNames loc dicts x
         | excluded x = []
         | otherwise  = (topQuery `catQ` recQuery)
                                  `extQ` locChangeCase
-                                 `extQ` predChangeCaseFunctionLevel
-                                 `extQ` predChangeCaseEquationLevel $ x
+                                 `extQ` predChangeCaseFunctionLevel dicts
+                                 `extQ` predChangeCaseEquationLevel dicts $ x
      where catQ r s x =  r x ++  s x
            topQuery = mkQ [] (collectGoalInfoVar goalNames loc dicts)
            recQuery :: GenericQ [GoalInfo]
@@ -56,15 +56,15 @@ collectGoalInfo goalNames loc dicts x
            locChangeCase :: LHsExpr Id -> [GoalInfo]
            locChangeCase (L newloc child) = collectGoalInfo goalNames newloc dicts child
            excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
-           predChangeCaseFunctionLevel :: HsBind Id -> [GoalInfo]
-           predChangeCaseFunctionLevel (AbsBinds _ newdicts child1 child2) =
+           predChangeCaseFunctionLevel :: [DictId] -> HsBind Id -> [GoalInfo]
+           predChangeCaseFunctionLevel dicts (AbsBinds _ newdicts child1 child2) =
              let f :: GenericQ [GoalInfo]
-                 f = collectGoalInfo goalNames loc newdicts
+                 f = collectGoalInfo goalNames loc (dicts++newdicts)
              in f child1 ++ f child2
-           predChangeCaseFunctionLevel x = recQuery x
-           predChangeCaseEquationLevel :: Match Id -> [GoalInfo]
-           predChangeCaseEquationLevel (Match pat child1 child2) = 
-                 let newdicts = concatMap collectPredPat pat
+           predChangeCaseFunctionLevel _ x = recQuery x
+           predChangeCaseEquationLevel :: [DictId] -> Match Id -> [GoalInfo]
+           predChangeCaseEquationLevel dicts (Match pat child1 child2) = 
+                 let newdicts = dicts ++ concatMap collectPredPat pat
                      f :: GenericQ [GoalInfo]
                      f        = collectGoalInfo goalNames loc newdicts
                  in f child1 ++ f child2
