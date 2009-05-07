@@ -8,7 +8,7 @@ module Development.GhcGoals (
     , pprGoals
     ) where
 
-import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls))
+import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls), SuccessFlag(..), handleSourceError, printExceptionAndWarnings)
 import GHC.Paths (libdir)
 import DynFlags (defaultDynFlags)
 import MonadUtils (liftIO)
@@ -31,16 +31,19 @@ getGoals = getGoalsWith ["undefined"]
 getGoalsWith :: [String] -> FilePath -> IO [GoalInfo]
 getGoalsWith goals file =
     defaultErrorHandler defaultDynFlags $
-      runGhc (Just libdir) $ do
+      runGhc (Just libdir) $ handleSourceError (\x -> printExceptionAndWarnings x >> return []) $ do
         dflags   <- getSessionDynFlags
         setSessionDynFlags dflags
         target   <- guessTarget file Nothing
         setTargets [target]
-        load LoadAllTargets
-        (md:mds) <- depanal [] True
-        pm       <- parseModule md
-        tcm      <- typecheckModule pm
-        return $ goalsFor tcm goals
+        success <- load LoadAllTargets
+        case success of
+          Succeeded -> do
+            (md:mds) <- depanal [] True
+            pm       <- parseModule md
+            tcm      <- typecheckModule pm
+            return $ goalsFor tcm goals
+          Failed     -> return []
 
 -- | Pretty print information on goals in a style similar to GHCi.
 pprGoals :: [GoalInfo] -> IO ()
