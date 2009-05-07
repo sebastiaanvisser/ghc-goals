@@ -12,7 +12,7 @@ module Development.GhcGoals (
 import Control.Monad (liftM)
 import Data.List (sortBy)
 
-import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls), SuccessFlag(..), handleSourceError, printExceptionAndWarnings)
+import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls), SuccessFlag(..), handleSourceError, printExceptionAndWarnings, ghcLink, GhcLink(..), hscTarget, HscTarget(..))
 import GHC.Paths (libdir)
 import DynFlags (defaultDynFlags)
 import MonadUtils (liftIO)
@@ -43,7 +43,10 @@ getGoalsWith goals file = liftM (sortBy compareGoalInfo) gs
     gs = defaultErrorHandler defaultDynFlags $
            runGhc (Just libdir) $ handleSourceError (\x -> printExceptionAndWarnings x >> return []) $ do
              dflags   <- getSessionDynFlags
-             setSessionDynFlags dflags
+             setSessionDynFlags $ dflags {
+                 ghcLink = LinkInMemory
+               , hscTarget = HscNothing -- Interpreted
+               }
              target   <- guessTarget file Nothing
              setTargets [target]
              success <- load LoadAllTargets
