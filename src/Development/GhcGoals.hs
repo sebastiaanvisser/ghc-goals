@@ -11,6 +11,7 @@ module Development.GhcGoals (
 
 import Control.Monad (liftM)
 import Data.List (sortBy)
+import Data.Ord (comparing)
 
 import GHC (defaultErrorHandler, load, LoadHowMuch(..), runGhc, getSessionDynFlags, setSessionDynFlags, guessTarget, setTargets, depanal, parseModule, typecheckModule, dopt, DynFlag(Opt_PrintExplicitForalls), SuccessFlag(..), handleSourceError, printExceptionAndWarnings, ghcLink, GhcLink(..), hscTarget, HscTarget(..))
 import GHC.Paths (libdir)
@@ -38,28 +39,27 @@ getGoals = getGoalsWith ["undefined"]
 -- | Analyze a file, returning type information for all variables with
 -- the specified names.
 getGoalsWith :: [String] -> FilePath -> IO [GoalInfo]
-getGoalsWith goals file = liftM (sortBy compareGoalInfo) gs
-  where
-    gs = defaultErrorHandler defaultDynFlags $
-           runGhc (Just libdir) $ handleSourceError (\x -> printExceptionAndWarnings x >> return []) $ do
-             dflags   <- getSessionDynFlags
-             setSessionDynFlags $ dflags {
-                 ghcLink = LinkInMemory
-               , hscTarget = HscNothing -- Interpreted
-               }
-             target   <- guessTarget file Nothing
-             setTargets [target]
-             success <- load LoadAllTargets
-             case success of
-               Succeeded -> do
-                 (md:mds) <- depanal [] True
-                 pm       <- parseModule md
-                 tcm      <- typecheckModule pm
-                 return $ goalsFor tcm goals
-               Failed     -> return []
+getGoalsWith goals file =
+    defaultErrorHandler defaultDynFlags $
+      runGhc (Just libdir) $ handleSourceError (\x -> printExceptionAndWarnings x >> return []) $ do
+        dflags   <- getSessionDynFlags
+        setSessionDynFlags $ dflags {
+            ghcLink = LinkInMemory
+          , hscTarget = HscNothing -- Interpreted
+          }
+        target   <- guessTarget file Nothing
+        setTargets [target]
+        success <- load LoadAllTargets
+        case success of
+          Succeeded -> do
+            (md:mds) <- depanal [] True
+            pm       <- parseModule md
+            tcm      <- typecheckModule pm
+            return . sortBy (comparing snd3) $ goalsFor tcm goals
+          Failed     -> return []
 
-compareGoalInfo :: GoalInfo -> GoalInfo -> Ordering
-compareGoalInfo (_, s1, _) (_, s2, _) = compare s1 s2
+snd3 :: (a, b, c) -> b
+snd3 (a, b, c) = b
 
 -- | Pretty print information on goals in a style similar to GHCi.
 pprGoals :: [GoalInfo] -> IO ()
@@ -76,6 +76,3 @@ pprTypeSpecForUser pefas (ts, ty) =
     then empty
     else parens (pprWithCommas (pprTypeForUser pefas) ts) <+> text "=>")
   <+> pprTypeForUser pefas ty
-
-
-
