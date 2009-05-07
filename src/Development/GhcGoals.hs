@@ -3,6 +3,7 @@
 -- etc., producing type information on all the goals.
 module Development.GhcGoals (
       goals
+    , goalsWith
     , getGoals
     , getGoalsWith
     , pprGoals
@@ -23,7 +24,12 @@ import Development.GhcGoals.Collector
 
 -- | Analyze a file, print type information for all 'undefined's
 goals :: FilePath -> IO ()
-goals p = getGoals p >>= pprGoals
+goals = goalsWith ["undefined"]
+
+-- | Analyze a file, print type information for all variables with the
+-- specified names.
+goalsWith :: [String] -> FilePath -> IO ()
+goalsWith goals file = getGoalsWith goals file >>= pprGoals
 
 -- | Analyze a file, returning type information for all 'undefined's.
 getGoals :: FilePath -> IO [GoalInfo]
