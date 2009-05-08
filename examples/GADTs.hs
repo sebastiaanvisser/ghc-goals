@@ -1,6 +1,4 @@
-{-# LANGUAGE GADTs
-  , KindSignatures
-  #-}
+{-# LANGUAGE GADTs, KindSignatures #-}
 module GADTs where
 
 data Expr :: * -> * where
@@ -10,3 +8,4 @@ data Expr :: * -> * where
 f :: Expr a -> a
 f EInt  = 1
 f EChar = undefined
+
