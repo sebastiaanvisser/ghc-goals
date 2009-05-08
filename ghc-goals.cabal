@@ -15,7 +15,7 @@ description:         During development of a Haskell program, we sometimes use
                      .
                      The executable can be used like so:
                      .
-                     > $ ghc-goals test/Simple
+                     > $ ghc-goals examples/Simple
                      > undefined :: Integer -> Char  -- Used in examples/Simple.hs:4:21-29
                      > undefined :: Char  -- Used in examples/Simple.hs:7:12-20
                      .
