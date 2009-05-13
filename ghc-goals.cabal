@@ -37,7 +37,7 @@ maintainer:          Tom Lokhorst
 stability:           Experimental
 category:            Development
 build-type:          Simple
-cabal-version:       >= 1.2
+cabal-version:       >= 1.6
 extra-source-files:  examples/*.hs
 
 library
