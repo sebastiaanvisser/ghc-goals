@@ -1,6 +1,6 @@
 -- | This module contains the pure interface to goal collecting.
-module Development.GhcGoals.Collector (
-    TypeSpec
+module Development.GhcGoals.Collector
+  ( TypeSpec
   , GoalInfo
   , goalsFor
   ) where
@@ -35,8 +35,8 @@ type GoalInfo = (String, SrcSpan, TypeSpec)
 -- variables with the specified names.
 goalsFor :: TypecheckedModule -> [String] -> [GoalInfo]
 goalsFor mod names =
-     map (\(n, s, ts) -> (n, s, cleanupTypeSpec ts))
-   $ collectGoalInfo names (error "no top-level SrcSpan found") [] (typecheckedSource mod)
+  map (\(n, s, ts) -> (n, s, cleanupTypeSpec ts))
+  $ collectGoalInfo names (error "no top-level SrcSpan found") [] (typecheckedSource mod)
 
 cleanupTypeSpec :: TypeSpec -> TypeSpec
 cleanupTypeSpec (preds, ty) = (map tidy preds, tidy ty)
@@ -44,32 +44,36 @@ cleanupTypeSpec (preds, ty) = (map tidy preds, tidy ty)
 
 collectGoalInfo :: [String] -> SrcSpan -> [DictId] -> GenericQ [GoalInfo]
 collectGoalInfo goalNames loc dicts x
-        | excluded x = []
-        | otherwise  = (topQuery `catQ` recQuery)
-                                 `extQ` locChangeCase
-                                 `extQ` predChangeCaseFunctionLevel dicts
-                                 `extQ` predChangeCaseEquationLevel dicts $ x
-     where catQ r s x =  r x ++  s x
-           topQuery = mkQ [] (collectGoalInfoVar goalNames loc dicts)
-           recQuery :: GenericQ [GoalInfo]
-           recQuery = concat . gmapQ (collectGoalInfo goalNames loc dicts)
-           locChangeCase :: LHsExpr Id -> [GoalInfo]
-           locChangeCase (L newloc child) = collectGoalInfo goalNames newloc dicts child
-           excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
-           predChangeCaseFunctionLevel :: [DictId] -> HsBind Id -> [GoalInfo]
-           predChangeCaseFunctionLevel dicts (AbsBinds _ newdicts child1 child2) =
-             let f :: GenericQ [GoalInfo]
-                 f = collectGoalInfo goalNames loc (dicts++newdicts)
-             in f child1 ++ f child2
-           predChangeCaseFunctionLevel _ x = recQuery x
-           predChangeCaseEquationLevel :: [DictId] -> Match Id -> [GoalInfo]
-           predChangeCaseEquationLevel dicts (Match pat child1 child2) = 
-                 let newdicts = dicts ++ concatMap collectPredPat pat
-                     f :: GenericQ [GoalInfo]
-                     f        = collectGoalInfo goalNames loc newdicts
-                 in f child1 ++ f child2
-           collectPredPat (L _ (ConPatOut _ _ newdicts _ _ _)) = newdicts
-           collectPredPat x = []
+  | excluded x = []
+  | otherwise  = (topQuery `catQ` recQuery)
+                           `extQ` locChangeCase
+                           `extQ` predChangeCaseFunctionLevel dicts
+                           `extQ` predChangeCaseEquationLevel dicts $ x
+  where
+    catQ r s x =  r x ++  s x
+    topQuery = mkQ [] (collectGoalInfoVar goalNames loc dicts)
+
+    recQuery :: GenericQ [GoalInfo]
+    recQuery = concat . gmapQ (collectGoalInfo goalNames loc dicts)
+
+    locChangeCase :: LHsExpr Id -> [GoalInfo]
+    locChangeCase (L newloc child) = collectGoalInfo goalNames newloc dicts child
+    excluded = False `mkQ` ((const True) :: NameSet -> Bool)
+
+    predChangeCaseFunctionLevel :: [DictId] -> HsBind Id -> [GoalInfo]
+    predChangeCaseFunctionLevel dicts (AbsBinds _ newdicts child1 child2) =
+      let f :: GenericQ [GoalInfo]
+          f = collectGoalInfo goalNames loc (dicts++newdicts)
+      in f child1 ++ f child2
+    predChangeCaseFunctionLevel _ x = recQuery x
+    predChangeCaseEquationLevel :: [DictId] -> Match Id -> [GoalInfo]
+    predChangeCaseEquationLevel dicts (Match pat child1 child2) = 
+          let newdicts = dicts ++ concatMap collectPredPat pat
+              f :: GenericQ [GoalInfo]
+              f = collectGoalInfo goalNames loc newdicts
+          in f child1 ++ f child2
+    collectPredPat (L _ (ConPatOut _ _ newdicts _ _ _)) = newdicts
+    collectPredPat x = []
 
 collectGoalInfoVar :: [String] -> SrcSpan -> [DictId] -> HsExpr Id -> [GoalInfo]
 collectGoalInfoVar goalNames loc dicts ((HsWrap wrap (HsVar var)))
@@ -120,38 +124,41 @@ subst_type v t' t0 = go t0
         | otherwise -> ForAllTy v' (go bt)
       PredTy pt -> PredTy (go_pt pt)
 
-   -- XXX: this is probably not right
+    -- XXX: this is probably not right
     go_pt (ClassP c ts) = ClassP c (map go ts)
     go_pt (IParam i t) = IParam i (go t)
     go_pt (EqPred t1 t2) = EqPred (go t1) (go t2)
 
 {--
----DEBUG STUFF
-
+-- DEBUG STUFF
 
 gshowsafe :: GenericQ String
-gshowsafe = ( \t ->
-                "("
-             ++ showConstr (toConstr t)
-             ++ concat (gmapQ ((++) " " . gshowsafe) t)
-             ++ ")"
-            ) `extQ` (const "UNDEFINED" :: NameSet -> String)
-              `extQ` (varNameString) `extQ` (lsts gshowsafe :: [LMatch Id] -> String)
-   where lsts :: (a -> String) -> [a] -> String
-         lsts s x = "["++lsts' s x++"]"
-         lsts' :: (a -> String) -> [a] -> String
-         lsts' s [] = ""
-         lsts' s [x] = s x
-         lsts' s (x:xs) = s x ++ " , " ++ lsts' s xs    
+gshowsafe =
+  (\t ->
+      "("
+   ++ showConstr (toConstr t)
+   ++ concat (gmapQ ((++) " " . gshowsafe) t)
+   ++ ")"
+  ) `extQ` (const "UNDEFINED" :: NameSet -> String)
+    `extQ` (varNameString) `extQ` (lsts gshowsafe :: [LMatch Id] -> String)
+ where
+  lsts :: (a -> String) -> [a] -> String
+  lsts s x = "["++lsts' s x++"]"
+  lsts' :: (a -> String) -> [a] -> String
+  lsts' s [] = ""
+  lsts' s [x] = s x
+  lsts' s (x:xs) = s x ++ " , " ++ lsts' s xs    
 
 testquery :: GenericQ [String]
 testquery = map gshow . map (varNameString&&&varType) . testquery'
 
 testquery' :: GenericQ [Var]
 testquery' = everythingBut excluded (++) [] ([] `mkQ` testqueryVar)
-     where excluded :: GenericQ Bool
-           excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
+  where
+    excluded :: GenericQ Bool
+    excluded  = False `mkQ` ((const True) :: NameSet -> Bool)
 
 testqueryVar ::  Var -> [Var]
 testqueryVar = return
 --}
+
